@@ -16,6 +16,8 @@ class Article(models.Model):
 
     # 存储文章展示时候的缩略图
     img = models.ImageField(upload_to='article_img/%Y/%m/%d/', verbose_name='文章图片', blank=True, null=True)
+    """
+    富文档启用
     body = UEditorField('内容', width=800, height=500,
                         toolbars="full", imagePath="upimg/", filePath="upfile/",
                         upload_settings={"imageMaxSize": 1204000},
@@ -24,6 +26,9 @@ class Article(models.Model):
     # TODO（anning) : 使用富文本编辑器可能会导致django报错  \
     # F:\course\myblog\myblogvenv\lib\site-packages\django\forms\boundfield.py in as_widget, line 93
     # 那么只需要打开boundfield.py 注释掉renderer = self.form.renderer
+    
+    """
+    body = models.TextField(verbose_name="文章内容",max_length=200)
 
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='作者')
@@ -36,9 +41,7 @@ class Article(models.Model):
     views = models.PositiveIntegerField('阅读量', default=0)
     created_time = models.DateTimeField('发布时间', auto_now_add=True)
     modified_time = models.DateTimeField('修改时间', auto_now=True)
-
-class Comment_nums(models.Model):
-    article_id = models.ForeignKey(Article,on_delete=models.CASCADE,verbose_name='文章id')
+    like_count = models.PositiveIntegerField("总点赞人数", default=0)
     count_comment = models.PositiveIntegerField('总评论数',default=0)
 
 class Comment(models.Model):
@@ -59,12 +62,6 @@ class Reply(models.Model):
     child_id = models.ForeignKey(Comment,related_name='child_id', on_delete=models.CASCADE, verbose_name='子')
 
 
-class Likes_count(models.Model):
-    """
-    计算总的点赞人数
-    """
-    article_id = models.ForeignKey(Article,on_delete=models.CASCADE,verbose_name='文章id')
-    like_count = models.PositiveIntegerField("总点赞人数",default=0)
 
 class Likes(models.Model):
     """
