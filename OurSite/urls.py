@@ -24,8 +24,16 @@ from OurSite.settings import MEDIA_ROOT
 schema_view = get_schema_view(title='Pastebin API')
 
 urlpatterns = [
+    # SENPENG
     path('admin/', admin.site.urls),
+    path('ueditor/', include('DjangoUeditor.urls')),
+    #re_path('^media/(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT}),#增加此行
+    path('forum/',include('article.urls'))
+
+    # WENRONG
     path('account/', include('account.urls')),
+
+    # XIAOPENG
     path('medical/',include('medical.urls')),
     path('chat/',include('chat.urls')),
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
