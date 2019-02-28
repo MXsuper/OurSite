@@ -36,7 +36,7 @@ class SubAreaSerializer(serializers.ModelSerializer):
 
 class DiagnosisSerializer(serializers.ModelSerializer):
     # user = UserDetailSerializer()['username'] # 嵌套外键所有字段
-    user = serializers.ReadOnlyField(source="user.username")
+    user = serializers.ReadOnlyField(source="user.pk")
     # user = serializers.HiddenField(default=serializers.CurrentUserDefault())
     class Meta:
         model = Diagnosis

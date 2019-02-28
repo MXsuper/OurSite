@@ -8,10 +8,10 @@ __author__ = 'lin'
 
 from django.db import models
 from django.core.validators import RegexValidator
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.utils import timezone
 
-
+User = get_user_model()
 
 # 建立城市自关联数据库表
 class Areas(models.Model):
@@ -70,15 +70,15 @@ class Diagnosis(models.Model):
 
 class Messages(models.Model):
     # 信息发送者
-    sender = models.CharField(max_length=30, verbose_name="message_sender")
-    # sender = models.ForeignKey(User, related_name='message_sender', on_delete=models.CASCADE)
+    # sender = models.CharField(max_length=30, verbose_name="message_sender")
+    sender = models.ForeignKey(User, related_name='message_sender', on_delete=models.CASCADE)
     # 信息接收者
-    receiver = models.CharField(max_length=30)
-    # receiver = models.ForeignKey(User, related_name='message_receiver', on_delete=models.CASCADE)
+    # receiver = models.CharField(max_length=30)
+    receiver = models.ForeignKey(User, related_name='message_receiver', on_delete=models.CASCADE)
     # 信息内容
     body = models.CharField(max_length=1024, verbose_name='message_body')
     # 发送时间
-    created = models.DateTimeField(auto_now_add=True)
+    createtime = models.DateTimeField(auto_now_add=True)
     # 状态
     status = models.BooleanField(default=False)
 

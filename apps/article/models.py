@@ -1,8 +1,10 @@
 from django.db import models
 
 # Create your models here.
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from DjangoUeditor.models import UEditorField #头部增加这行代码导入UEditorField
+
+User = get_user_model()  # XIAOPENG
 
 # 文章
 class Article(models.Model):
@@ -44,6 +46,10 @@ class Article(models.Model):
     like_count = models.PositiveIntegerField("总点赞人数", default=0)
     count_comment = models.PositiveIntegerField('总评论数',default=0)
 
+    class Meta:
+        verbose_name = "文章"
+        verbose_name_plural = verbose_name
+
 class Comment(models.Model):
     """
     评论表，只记录评论内容，然后用一个reply表来记录信息，topic_type 记录是否为根评论，1为是，2为否
@@ -54,14 +60,22 @@ class Comment(models.Model):
     topic_type = models.IntegerField('评论类型',default=1) # 1表示评论，2表示回复
     comment_time = models.DateTimeField('评论时间', auto_now_add=True)
 
+    class Meta:
+        verbose_name = "评论"
+        verbose_name_plural = verbose_name
+
 class Reply(models.Model):
     """
     评论回复，构成一颗树，检索父子节点，即可以得知评论的顺序
     """
-    parent_ids = models.ForeignKey(Comment,related_name='parent_id', on_delete=models.CASCADE, verbose_name='父')
-    child_ids = models.ForeignKey(Comment,related_name='child_id', on_delete=models.CASCADE, verbose_name='子',unique=True)
+    parent_ids = models.ForeignKey(Comment, related_name='parent_id', on_delete=models.CASCADE, verbose_name='父')
+    # child_ids = models.ForeignKey(Comment, related_name='child_id', on_delete=models.CASCADE, verbose_name='子',unique=True)
+    # XIAOPENG
+    child_ids = models.OneToOneField(Comment, related_name='child_id', on_delete=models.CASCADE, verbose_name='子')
 
-
+    class Meta:
+        verbose_name = "回复"
+        verbose_name_plural = verbose_name
 
 class Likes(models.Model):
     """
@@ -70,6 +84,14 @@ class Likes(models.Model):
     article_id = models.ForeignKey(Article,on_delete=models.CASCADE,verbose_name='文章id')
     user_id = models.ForeignKey(User,on_delete=models.CASCADE, verbose_name='点赞人')
 
+    class Meta:
+        verbose_name = "点赞"
+        verbose_name_plural = verbose_name
+
 class Collection(models.Model):
     article_id = models.ForeignKey(Article, on_delete=models.CASCADE, verbose_name='文章id')
     user_id = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='收藏人')
+
+    class Meta:
+        verbose_name = "收藏"
+        verbose_name_plural = verbose_name
