@@ -61,4 +61,38 @@ class UserDetailSerializer(serializers.ModelSerializer):
     """
     class Meta:
         model = User
-        fields = ('id', 'username', 'nickname', 'gender', 'location', 'phone', 'birthday', 'introduction', 'is_doctor',)
+        fields = ('id', 'username', 'nickname', 'gender', 'location', 'phone', 'birthday', 'introduction')
+
+
+class DoctorDetailSerializer(serializers.ModelSerializer):
+    """
+    用户详细信息序列化器
+    """
+    class Meta:
+        model = User
+        fields = ('id', 'username', 'nickname', 'gender', 'location', 'phone', 'birthday', 'introduction',
+                  'identity_name', 'identity_number', 'doctor_number', 'doctor_hospital')
+
+
+class UserUpdateSerializer(serializers.ModelSerializer):
+    """
+    用户详细信息序列化器
+    """
+    class Meta:
+        model = User
+        fields = ('nickname', 'gender', 'location', 'phone', 'birthday', 'introduction',
+                  'is_doctor', 'identity_name', 'identity_number', 'doctor_number', 'doctor_hospital')
+
+
+class ResetPasswordSerializer(serializers.ModelSerializer):
+    """
+    更新用户密码
+    """
+    def update(self, instance, validated_data):
+        instance.set_password(validated_data['password'])
+        instance.save()
+        return instance
+
+    class Meta:
+        model = User
+        fields = ('password',)
