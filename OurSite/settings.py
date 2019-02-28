@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'account',
     'article',
     'DjangoUeditor',
+    'rest_framework',
 ]
 
 MIDDLEWARE = [
@@ -124,3 +125,19 @@ STATIC_URL = '/static/'
 #设置文件上传路径，图片上传、文件上传都会存放在此目录里
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+AUTH_USER_MODEL = 'account.UserProfile'
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
+    ),
+}
+
+import datetime
+JWT_AUTH = {
+    'JWT_EXPIRATION_DELTA': datetime.timedelta(days=1),
+    'JWT_RESPONSE_PAYLOAD_HANDLER': 'account.utils.jwt_response_payload_handler',
+    'JWT_AUTH_HEADER_PREFIX': 'JWT',
+}
