@@ -1,9 +1,10 @@
 from django.shortcuts import render
 from django.shortcuts import HttpResponse
-from .models import Article,Likes,User,Comment,Reply
+from django.http import HttpResponseBadRequest, HttpResponseForbidden,JsonResponse
+from .models import Article,Likes,User,Comment,Reply,Collection
 import json
 from  datetime import datetime,date
-
+from django.forms.models import model_to_dict
 from django.views.decorators.csrf import csrf_exempt
 
 # Create your views here.
@@ -26,57 +27,35 @@ def get_all_article(request):
     """
 
     try:
-        param = json.loads(request.body)['article_arr_type']
-        key = param.split('/')[0]
-        type= param.split('/')[1]
-        if type == '0':
-            if key == 'hot':
-                articles = Article.objects.all().order_by('like_count').values()
-            elif key == 'pop':
-                articles = Article.objects.all().order_by('count_comment').values()
-            elif key == 'new':
-                articles = Article.objects.all().order_by('created_time').values()
-            all = {}
-            for article in articles:
-                article['img'] = 'http://127.0.0.1:8000/media/'+article['img']
-                all[article['id']] = article
-            return HttpResponse(json.dumps(all, cls=ComplexEncoder, ensure_ascii=False))
+        param = json.loads(request.body)
+        key = param['article_arr_type'].split('/')[0]
+        type= param['article_arr_type'].split('/')[1]
+        if param.get('uid'):
+            print("还没有写")
+            # TOKEN 认证
+            #TODO: 用户获取所有的文章
         else:
-            return HttpResponse("你所访问的页面不存在", status=404)
+            if type == '0':
+                if key == 'hot':
+                    articles = Article.objects.all().order_by('like_count').values()
+                elif key == 'pop':
+                    articles = Article.objects.all().order_by('count_comment').values()
+                elif key == 'new':
+                    articles = Article.objects.all().order_by('created_time').values()
+                all = {}
+                for article in articles:
+                    article['img'] = 'http://127.0.0.1:8000/media/'+article['img']
+                    all[article['id']] = article
+                return HttpResponse(json.dumps(all, cls=ComplexEncoder, ensure_ascii=False))
+            else:
+                # TODO（ANNING）： 官方的文章接口
+                return HttpResponse("你所访问的页面不存在", status=404)
 
     except Exception as e :
         print(e)
         return HttpResponse("获取数据失败", status=401)
 
 
-""" 暂停了post请求时，所需要的csrftoken，登陆后自动分配，cookie要求携带"""
-@csrf_exempt
-def post_like(request):
-    """
-
-    :param request:
-    user_id: 当前用户的id
-    article_id:当前文章的id
-
-    :return:返回1 或者 2 ， 1表示点赞成功， 2 表示点赞取消,3 表示错误
-    """
-    article_id = request.POST.get('article_id')
-    user_id = request.POST.get('user_id')
-    print(article_id,user_id)
-    if article_id and user_id:
-        Like = Likes.objects.filter(article_id=article_id,user_id=user_id)
-        article = Article.objects.get(id=article_id)
-        if Like:
-            Like.delete()
-            article.like_count = article.like_count-1 if article.like_count-1>0 else 0
-            article.save()
-            return HttpResponse("2")
-        else:
-            Likes(article_id=article,user_id=User.objects.get(id=user_id)).save()
-            article.like_count = article.like_count+1
-            article.save()
-            return HttpResponse("1")
-    return HttpResponse("3")
 
 
 @csrf_exempt
@@ -113,7 +92,7 @@ def sendcomment(request):
             comment = Comment(user_id=user_id, article_id_id=article_id, content=content, topic_type=comment_type)
             comment.save()
             comment_id = json.loads(request.body)['comment_id']
-            reply = Reply(parent_id_id=comment_id,child_id_id = comment.id)
+            reply = Reply(parent_ids_id=comment_id,child_ids_id = comment.id)
             reply.save()
 
             return HttpResponse(status=200)
@@ -166,6 +145,7 @@ def delet_article(request):
         # TODO(anning) : 用户删除权限，还没写
         try:
             Article.objects.get(id=article_id).delete()
+            print("article",article_id,"has been delete","the user is ",)
         except Exception as e:
             print(e)
             return HttpResponse(status=401)
@@ -174,3 +154,181 @@ def delet_article(request):
         return HttpResponse(status=402)
 
 
+
+# 添加到收藏单
+@csrf_exempt
+def add_to_collection(request):
+    if request.method == 'POST':
+        try:
+            param = json.loads(request.body)
+            article_id = param['article_id']
+            user_id = param['user_id']
+            collection = Collection.objects.get(user_id=user_id,article_id=article_id)
+            if collection != None:
+                return HttpResponse(status=402)
+            else:
+                Collection(user_id_id=user_id,article_id_id=article_id).save()
+                return HttpResponse(status=200)
+        except Exception as e :
+            print(e)
+            return HttpResponse(status=401)
+
+    else:
+        return HttpResponse(status=402)
+
+# 删除收藏单
+def delete_collections(request):
+    if request.method == 'POST':
+        try:
+            param = json.loads(request.body)
+            article_id = param['article_id']
+            user_id = param['user_id']
+
+            collection = Collection.objects.get(user_id=user_id,article_id=article_id)
+            if collection == None:
+                return HttpResponse(status=402)
+            else:
+                collection.delete()
+                return HttpResponse(status=200)
+        except Exception as e :
+            print(e)
+            return HttpResponse(status=401)
+    else:
+        return HttpResponse(status=402)
+
+
+""" 暂停了post请求时，所需要的csrftoken，登陆后自动分配，cookie要求携带"""
+@csrf_exempt
+def post_like(request):
+    """
+
+    :param request:
+    user_id: 当前用户的id
+    article_id:当前文章的id
+
+    :return:返回1 或者 2 ， 1表示点赞成功， 2 表示点赞取消,3 表示错误
+    """
+
+
+    if request.method == 'POST':
+        try:
+            param = json.loads(request.body)
+            article_id = param['article_id']
+            user_id = param['user_id']
+
+            if article_id and user_id:
+                Like = Likes.objects.filter(article_id=article_id,user_id=user_id)
+                article = Article.objects.get(id=article_id)
+                if Like:
+                    Like.delete()
+                    article.like_count = article.like_count-1 if article.like_count-1>0 else 0
+                    article.save()
+                    return HttpResponse(status=200,content="点赞取消")
+                else:
+                    Likes(article_id=article,user_id=User.objects.get(id=user_id)).save()
+                    article.like_count = article.like_count+1
+                    article.save()
+                    return HttpResponse(status=200,content="点赞成功")
+            return HttpResponseBadRequest()
+        except Exception as e :
+            print(e)
+            return HttpResponseForbidden()
+
+def get_reply(comment_parent_id):
+    if  not Reply.objects.filter(parent_ids=comment_parent_id):
+        return
+
+    replies = Reply.objects.filter(parent_ids=comment_parent_id).values()
+    all_reply = {}
+
+    for reply in replies:
+
+        child = Comment.objects.get(id = reply['child_ids_id'])
+        time = child.comment_time
+        child = model_to_dict(child)
+
+        del child['article_id']
+        del child['topic_type']
+
+        child['time'] = time
+        child['parent_id']=reply['parent_ids_id']
+        child['reply']=get_reply(reply['child_ids_id'])
+
+        all_reply[reply['child_ids_id']]=child
+    return all_reply
+
+@csrf_exempt
+def get_comment_list(request):
+    """
+    采用树结构检索出来，因为存的时候，comment表存内容，reply表里存关系
+    :param request: article_id
+    :return:
+    {comment_id:{
+        user_id:
+        user_name:
+        content :
+        comment_id:
+        reply:{comment_id:{
+                user_id:
+                user_name:
+                content:
+                comment_id:
+                parent_id:
+                    reply:{
+                        .......
+                    }
+                },
+                comment_id:{
+                user_id:
+                user_name:
+                content:
+                comment_id:
+                    reply:{
+                        .......
+                    }
+                },
+            }
+        },
+        comment_id:{
+        user_id:
+        user_name:
+        content :
+        comment_id:
+        reply:{
+                user_id:
+                user_name:
+                content:
+                comment_id:
+                reply:{
+
+                }
+            }
+        }
+    }
+    """
+    if request.method == 'POST':
+        param = json.loads(request.body)
+        param = dict(param)
+        if param.get("article_id"):
+            all_comment = {}
+            # 首先获得所有的评论的根，然后再去检查评论有没有回复
+            article_id = param.get("article_id")
+            print(article_id)
+            comment_root = Comment.objects.filter(topic_type=1,article_id=article_id).values()
+            print(comment_root.values())
+            if comment_root == None:
+                return JsonResponse(all_comment)
+            else:
+                for comment in comment_root:
+
+                    dic_comment = comment
+                    dic_comment['reply'] = get_reply(comment['id'])
+                    all_comment[comment['id']]=dic_comment
+
+                print(all_comment)
+                return JsonResponse(all_comment)
+        else:
+            return HttpResponseBadRequest()
+
+    else:
+        return HttpResponseBadRequest()

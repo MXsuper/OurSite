@@ -58,8 +58,8 @@ class Reply(models.Model):
     """
     评论回复，构成一颗树，检索父子节点，即可以得知评论的顺序
     """
-    parent_id = models.ForeignKey(Comment,related_name='parent_id', on_delete=models.CASCADE, verbose_name='父')
-    child_id = models.ForeignKey(Comment,related_name='child_id', on_delete=models.CASCADE, verbose_name='子')
+    parent_ids = models.ForeignKey(Comment,related_name='parent_id', on_delete=models.CASCADE, verbose_name='父')
+    child_ids = models.ForeignKey(Comment,related_name='child_id', on_delete=models.CASCADE, verbose_name='子',unique=True)
 
 
 
@@ -69,3 +69,7 @@ class Likes(models.Model):
     """
     article_id = models.ForeignKey(Article,on_delete=models.CASCADE,verbose_name='文章id')
     user_id = models.ForeignKey(User,on_delete=models.CASCADE, verbose_name='点赞人')
+
+class Collection(models.Model):
+    article_id = models.ForeignKey(Article, on_delete=models.CASCADE, verbose_name='文章id')
+    user_id = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='收藏人')
