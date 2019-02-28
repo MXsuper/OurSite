@@ -14,12 +14,19 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path, include
-
+from django.urls import path,include,re_path
+from django.views.static import serve
+from OurSite import settings
 
 
 urlpatterns = [
+    # SENPENG
     path('admin/', admin.site.urls),
+    path('ueditor/', include('DjangoUeditor.urls')),
+    re_path('^media/(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT}),#增加此行
+    path('forum/',include('article.urls'))
+  
+    # WENRONG
     path('account/', include('account.urls')),
     path('api-auth/', include('rest_framework.urls')),
 ]
