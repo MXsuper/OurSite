@@ -11,10 +11,12 @@ https://docs.djangoproject.com/en/2.1/ref/settings/
 """
 
 import os
-
+import sys
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
+sys.path.insert(0, BASE_DIR)
+sys.path.insert(0, os.path.join(BASE_DIR, 'apps'))
+sys.path.insert(0, os.path.join(BASE_DIR, 'extra_apps'))
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.1/howto/deployment/checklist/
@@ -39,11 +41,10 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'account',
     'article',
-    'DjangoUeditor',
-    'rest_framework',
-    'rest_framework',
     'medical',
     'chat',
+    'DjangoUeditor',
+    'rest_framework',
     'channels',
     'coreschema', # cors
 
@@ -151,7 +152,7 @@ import datetime
 JWT_AUTH = {
     'JWT_EXPIRATION_DELTA': datetime.timedelta(days=1),
     'JWT_RESPONSE_PAYLOAD_HANDLER': 'account.utils.jwt_response_payload_handler',
-    'JWT_AUTH_HEADER_PREFIX': 'JWT',
+    # 'JWT_AUTH_HEADER_PREFIX': 'JWT',
 }
 
 
@@ -197,3 +198,21 @@ net = torchvision.models.vgg16_bn(pretrained=False)
 net.classifier[6] = torch.nn.Linear(4096, 2, bias=True)
 net.load_state_dict(torch.load(os.path.join(STATIC_ROOT,CLASSIFY_MODEL), map_location=lambda storage, loc: storage))
 
+# 打印sql
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'loggers': {
+        'django.db.backends': {
+            'handlers': ['console'],
+            'propagate': True,
+            'level': 'DEBUG',
+        },
+    }
+}
