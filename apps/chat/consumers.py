@@ -7,11 +7,9 @@
 __author__ = 'lin'
 
 import json
-from channels.generic.websocket import AsyncWebsocketConsumer
-from djangochannelsrestframework.observer.generics import ObserverModelInstanceMixin
-from djangochannelsrestframework.generics import GenericAsyncAPIConsumer
-from medical.models import Messages
-from medical.serializers import MessagesSerializer
+from channels.generic.websocket import AsyncJsonWebsocketConsumer, AsyncWebsocketConsumer
+# from medical.models import Messages
+# from medical.serializers import MessagesSerializer
 
 '''
 class ChatConsumer(AsyncWebsocketConsumer):
@@ -61,12 +59,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
         # Send message to WebSocket
         # self.send(text_data=json.dumps({'message': message}))
         await self.send(text_data=json.dumps({'message': message}))
-
-
-
-class TestChatConsumer(ObserverModelInstanceMixin, GenericAsyncAPIConsumer):
-    queryset = Messages.objects.all()
-    serializer_class = MessagesSerializer
 
 '''
 

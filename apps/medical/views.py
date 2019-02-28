@@ -1,7 +1,8 @@
-from rest_framework.pagination import PageNumberPagination
 from rest_framework import viewsets,filters,generics,status,mixins
-from rest_framework_extensions.cache.mixins import CacheResponseMixin
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework_extensions.cache.mixins import CacheResponseMixin
 from django_filters.rest_framework import DjangoFilterBackend
 
 from .serializers import *
@@ -98,22 +99,20 @@ class DiagnosisViewSet(CacheResponseMixin,
             返回主键id，用户user,诊断图片image,诊断时间resltime
     '''
     serializer_class = DiagnosisSerializer
-    queryset = Diagnosis.objects.all().order_by('diagnosis_id') # 必须加排序规则否则报错
+    queryset = Diagnosis.objects.all() #.order_by('diagnosis_id') # 必须加排序规则否则报错
     pagination_class = Pagination # 自定义分页类
     filter_backends = (DjangoFilterBackend,filters.SearchFilter,filters.OrderingFilter) # 过滤搜索排序
 
 
     # # 设置filter的类为我们自定义的类
     # filter_class = GoodsFilter
-    filters_fields = ('diagnosis_prop') # 过滤诊断结果
+    # filters_fields = ('diagnosis_prop') # 过滤诊断结果
     search_fields = ('diagnosis_id','diagnosis_prop','diagnosis_title') # =表示精准搜索
     ordering_fields = ('diagnosis_addtime', ) # 时间排序
     # lookup_field = None
     # lookup_field = 'user_id'
     # lookup_url_kwarg = ['id','user_id']
-    '''
-    permission_classes = (permissions.IsAuthenticated,IsOwner)
-    '''
+    permission_classes = (IsAuthenticated,)
     # 动态修改序列化类
     def get_serializer_class(self):
         if self.action == 'create':

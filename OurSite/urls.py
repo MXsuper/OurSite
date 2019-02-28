@@ -28,14 +28,14 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('ueditor/', include('DjangoUeditor.urls')),
     #re_path('^media/(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT}),#增加此行
-    path('forum/',include('article.urls'))
+    path('forum/',include('article.urls')),
 
     # WENRONG
     path('account/', include('account.urls')),
 
     # XIAOPENG
     path('medical/',include('medical.urls')),
-    path('chat/',include('chat.urls')),
+    # path('chat/',include('chat.urls')),
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     path('docs/', include_docs_urls(title='青天游弋后台管理')),
     path('schema/',schema_view),
