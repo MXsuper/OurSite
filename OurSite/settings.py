@@ -37,10 +37,17 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'account',
-    'article',
-    'DjangoUeditor'
+    # 'account',
+    # 'article',
+    # 'DjangoUeditor',
+    'rest_framework',
+    'medical',
+    'chat',
+    'channels',
+    'coreschema', # cors
 ]
+
+CORS_ORIGIN_ALLOW_ALL = True # 跨域问题
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -57,7 +64,7 @@ ROOT_URLCONF = 'OurSite.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -80,6 +87,9 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'TEST': {
+            'NAME': os.path.join(BASE_DIR, 'db_test.sqlite3')
+        }
     }
 }
 
@@ -106,9 +116,9 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/2.1/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'zh-hans'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Shanghai'
 
 USE_I18N = True
 
@@ -121,6 +131,49 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.1/howto/static-files/
 
 STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR,"static")
 #设置文件上传路径，图片上传、文件上传都会存放在此目录里
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# 在根路由配置中指向通道
+ASGI_APPLICATION = "OurSite.routing.application" # 上面新建的 asgi 应用
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [('127.0.0.1', 6379)],
+        },
+    },
+}
+
+# redis缓存
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    }
+}
+
+# DRF扩展
+REST_FRAMEWORK_EXTENSIONS = {
+    # 缓存时间
+    'DEFAULT_CACHE_RESPONSE_TIMEOUT': 60 * 60,
+    # 缓存存储
+    'DEFAULT_USE_CACHE': 'default',
+}
+
+APPID = 'wx7a719e9bbb11b7ca'
+APPSERECT = '7cb70845b886aa3b90b364c645b36233'
+
+import torch
+import torchvision
+CLASSIFY_MODEL = 'epoch77_no_cw__3__P_vggnet3.pth'
+# CLASSIFY_MODEL = 'vggnet3-epoch105.pth'
+net = torchvision.models.vgg16_bn(pretrained=False)
+# net.classifier[0] = torch.nn.Linear(32768, 4096, bias=True)
+net.classifier[6] = torch.nn.Linear(4096, 2, bias=True)
+net.load_state_dict(torch.load(os.path.join(STATIC_ROOT,CLASSIFY_MODEL), map_location=lambda storage, loc: storage))
